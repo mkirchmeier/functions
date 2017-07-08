@@ -1,3 +1,7 @@
+#################################################################################
+# A set of functions commonly needed for climate data
+# See save_times.py for the functions to create the appropriate time inputs
+#################################################################################
 def remove_seasonal(x, mon):
 
 	# returns the values of x with the monthly means removed
@@ -432,7 +436,6 @@ def shift_latlon(lat1, lon1, axisa=0, axiso=1, add_ext=1):
 	# if input lat/lon are the same size as the data, supply axis on which to shift
 	#
 	# us add_ext flag to add an extra lat and lon so that plotting will work correctly
-	# currently add_ext only works with 1-D input
 	
 	import numpy as np
 	
@@ -483,8 +486,6 @@ def shift_latlon(lat1, lon1, axisa=0, axiso=1, add_ext=1):
 	return lat2,lon2
 
 ################################################################################
-
-
 def gridboxarea(lat1,lon1):
 	
 	# computes a nlat x nlon array of areas (in sq. km) for each grid box

@@ -1,4 +1,6 @@
-
+#################################################################################
+# A set of functions for common statistical analyses
+#################################################################################
 def regr(x,y,TLS_flag=0,add_int=0):
 	
 	#computes the regression coefficients for y = xB
@@ -128,13 +130,11 @@ def CItoEB(CI,x):
 	return eb
 
 ###############################################################################
-
-
 def autocorr(x, lags='None'):
 	
 	#returns the autocorrelation of x at lags
 	#should input x with mean/seasonal cycle removed
-	#adapted from Dan's matlab function
+	#adapted from Dan Vimont's matlab function
 	
 	import numpy as np
 	
@@ -167,7 +167,9 @@ def autocorr(x, lags='None'):
 
 ################################################################################
 def std_weighted(x,weights):
-	
+
+	#calculates a weighted standard deviation	
+
 	import numpy as np
 	
 	n1 = np.size(weights[weights>0])

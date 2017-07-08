@@ -1,3 +1,7 @@
+#################################################################################
+# A set of functions to create and manipulate date arrays
+# typically in the format [d,m,y]
+#################################################################################
 def save_time(start_year, end_year, ctype='standard'):
 
 	#creates day, mon, and year for the given date range
@@ -137,6 +141,9 @@ def save_time_m(start_year, end_year):
 
 ##############################################################################
 def time_labels(dmy):
+
+	#creates string labels for each year of daily data, to be used 
+	# as axis labels for plotting
 	
 	import numpy as np
 	
@@ -184,8 +191,9 @@ def save_nc_format(dmy):
 ###############################################################################
 def save_time_h(start_date, end_date, step=1, start_hour=0, ctype='standard'):
 
-	# returns a dmyh array
+	# returns a dmyh array (h = hour)
 	# start_date and end_date should be in the form [d m y]
+	# accepts input for the hour step (e.g., 1, 3, 12, etc.)
 
 	import numpy as np
 	
@@ -215,7 +223,7 @@ def dmy_to_julianday(dmy, use_leap=1):
 	
 	# converts input dmy array into list of Julian Day values
 	# if the use_leap flag is set to 1, will determine if leap days and adjust
-	#    accordingly; if not, assumes 365-day years\
+	#    accordingly; if not, assumes 365-day years
 	# currently not appropriate for 360-day calendars
 	
 	import numpy as np

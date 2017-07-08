@@ -1,3 +1,14 @@
+#################################################################################
+# A set of functions for the detection and attribution of climate signals
+#
+# Many functions adapted from other code as noted.
+#
+# References:
+#	Allen, M. R., and S. F. B. Tett, 1999: Checking for model consistency in optimal fingerprinting. Climate Dyn., 15, 419–434, doi:10.1007/s003820050291.
+#	Allen, M. R., and P. A. Stott, 2003: Estimating signal amplitudes in optimal fingerprinting, part I: Theory. Climate Dyn., 21, 477–491, doi:10.1007/s00382-003-0313-9.
+#	Ribes, A., S. Planton, and L. Terray, 2013: Application of regularised optimal fingerprinting to attribution. Part I: Method, properties and idealised analysis. Climate Dyn., 41, 2817–2836, doi:10.1007/s00382-013-1735-7.
+#################################################################################
+
 def regC(xL, center_flag=1):
 
 	# given the control data xL formed into a nxp matrix, calculates the
