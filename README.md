@@ -1,6 +1,6 @@
 This repository contains a collection of python modules designed for the analysis of climate data. All of the functions have been written as needed, so updates will include the addition of new functions or the extension of their applicability.
 
-climfunc_mk: Functions commonly needed for climate data analyses, including calculating and/or removing seasonal cycles, climatologies, and trends and quantile-mapping
+climfunc_mk: Functions commonly needed for climate data analyses, including calculating and/or removing seasonal cycles, climatologies, and trends
 
 conversions_mk: Functions to covert between meteorological variables, including SLP/PRES and moisture variables
 
