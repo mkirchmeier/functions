@@ -110,9 +110,10 @@ def save_time(start_year, end_year, ctype='standard'):
 
 
 ###########################################################################################
-def save_time_m(start_year, end_year):
+def save_time_m(start_year, end_year, start_mon=1, end_mon=12):
 
 	#creates mon and year for the given date range
+	#optional input for starting and ending months, if full year isn't needed
 
 	import numpy as np
 
@@ -136,7 +137,18 @@ def save_time_m(start_year, end_year):
 
 	my = np.array((mon, year)).T
 	my = my.astype(int)
-	
+
+	if start_mon != 1:
+		ind = np.ones((len(my[:,0])))
+		ind[(my[:,1]==years[0])&(my[:,0]<start_mon)] = 0.
+		ind = ind.astype('bool')
+		my = my[ind,:]
+	if end_mon != 12:
+		ind = np.ones((len(my[:,0])))
+		ind[(my[:,1]==years[-1])&(my[:,0]>end_mon)] = 0.
+		ind = ind.astype('bool')
+		my = my[ind,:]
+
 	return my
 
 ##############################################################################
