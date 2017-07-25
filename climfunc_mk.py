@@ -14,7 +14,7 @@ def remove_seasonal(x, my, startyear=0, endyear=0):
 	if n[0]!=np.shape(my)[0]:
 		raise ValueError('time should be the first dimension of the input data')
 	
-	if np.size(np.shape(my))==3:
+	if np.shape(my)[1]==3:
 		my = my[:,1:]	#if dmy, remove day column
 
 	if startyear==0:
@@ -52,7 +52,7 @@ def remove_seasonal2(x, my, seasons=[[12,1,2],[3,4,5],[6,7,8],[9,10,11]], starty
 	if isinstance(seasons[0],list)==0:	#if only one season provided, nest list
 		seasons = [seasons]
 	
-	if np.size(np.shape(my))==3:
+	if np.shape(my)[1]==3:
 		my = my[:,1:]	#if dmy, remove day column
 
 	if startyear==0:
@@ -60,8 +60,10 @@ def remove_seasonal2(x, my, seasons=[[12,1,2],[3,4,5],[6,7,8],[9,10,11]], starty
 	if endyear==0:
 		endyear = my[-1,1]	#if no endyear is given, use last
 
+
 	if cflag==1:
 		x1,ys = calc_seasonal(x,my,seasons=seasons,tflag=1)
+
 		
 		y = np.zeros(np.shape(x1))
 		ys2 = ys[(ys[:,0]>=startyear) & (ys[:,0]<=endyear),:]
@@ -71,6 +73,7 @@ def remove_seasonal2(x, my, seasons=[[12,1,2],[3,4,5],[6,7,8],[9,10,11]], starty
 		for k in xrange(len(seasons)):
 			y[ys[:,1]==k+1,...] = x1[ys[:,1]==k+1,...] - np.nanmean(x2[ys2[:,1]==k+1,...],axis=0)
 			sm[k,...] = np.nanmean(x2[ys2[:,1]==k+1,...],axis=0)
+
 			
 	else:
 		y = np.zeros(n)
@@ -81,6 +84,7 @@ def remove_seasonal2(x, my, seasons=[[12,1,2],[3,4,5],[6,7,8],[9,10,11]], starty
 		for k in xrange(len(seasons)):
 			y[np.in1d(my[:,0],seasons[k]),...] = x[np.in1d(my[:,0],seasons[k]),...] - np.nanmean(x2[np.in1d(my2[:,0],seasons[k]),...],axis=0)
 			sm[k,...] = np.nanmean(x2[np.in1d(my2[:,0],seasons[k]),...],axis=0)
+
 
 	if tflag==1:		
 		return y, sm
