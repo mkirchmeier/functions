@@ -2,95 +2,118 @@
 # A set of functions commonly needed for climate data
 # See save_times.py for the functions to create the appropriate time inputs
 #################################################################################
-def remove_seasonal(x, mon):
-
-	# returns the values of x with the monthly means removed
-	# x should have time as its first dimension
-	
-	import numpy as np
-
-	n = np.shape(x)
-	if n[0]!=np.size(mon):
-		raise ValueError('time should be the first dimension of the input data')
-	if np.size(n)>2:
-		raise ValueError('input data has too many dimensions')
-	
-	y = np.empty(n)
-
-	if np.size(n) > 1:
-		for j in np.arange(n[1]):
-			for k in np.arange(12)+1:
-				y[mon==k,j] = x[mon==k,j] - np.nanmean(x[mon==k,j])
-	else:
-		for k in np.arange(12)+1:
-			y[mon==k] = x[mon==k] - np.nanmean(x[mon==k])
-
-	return y
-
-#################################################################################
-def remove_seasonal2(x, my, startyear, endyear):
+def remove_seasonal(x, my, startyear=0, endyear=0):
 
 	# returns values of x with monthly means (of the period specified) removed
 	# x should have time as its first dimension
+	# if startyear or endyear are unspecified, use bounds of my
 	
 	import numpy as np
 
 	n = np.shape(x)
 	if n[0]!=np.shape(my)[0]:
 		raise ValueError('time should be the first dimension of the input data')
-	if np.size(n)>2:
-		raise ValueError('input data has too many dimensions')
 	
 	if np.size(np.shape(my))==3:
 		my = my[:,1:]	#if dmy, remove day column
-	
-	y = np.empty(n)
+
+	if startyear==0:
+		startyear = my[0,1]	#if no startyear is given, use first entry
+	if endyear==0:
+		endyear = my[-1,1]	#if no endyear is given, use last
+		
+	y = np.zeros(n)
 	my2 = my[(my[:,1]>=startyear) & (my[:,1]<=endyear),:]
-	
-	if np.size(n) > 1:
-		for k in np.arange(12)+1:
-			x2 = x[(my[:,1]>=startyear) & (my[:,1]<=endyear),:]
-			for j in np.arange(n[1]):
-				y[my[:,0]==k,j] = x[my[:,0]==k,j] - np.nanmean(x2[my2[:,0]==k,j])
-	else:
-		x2 = x[(my[:,1]>=startyear) & (my[:,1]<=endyear)]
-		for k in np.arange(12)+1:
-			y[my[:,0]==k] = x[my[:,0]==k] - np.nanmean(x2[my2[:,0]==k])
+	x2 = x[(my[:,1]>=startyear) & (my[:,1]<=endyear),...]
+
+	for k in xrange(12):
+		y[my[:,0]==k+1,...] = x[my[:,0]==k+1,...] - np.nanmean(x2[my2[:,0]==k+1,...],axis=0)
 
 	return y
 
 #################################################################################
+def remove_seasonal2(x, my, seasons=[[12,1,2],[3,4,5],[6,7,8],[9,10,11]], startyear=0, endyear=0, cflag=1, tflag=0):
 
+	# returns values of x with seasonal means (of the period specified) removed
+	# x should have time as its first dimension
+	# if startyear or endyear are unspecified, use bounds of my
+	# seasons should be a list of month numbers grouped into the desired seasons
+	#	default is DJF,MAM,JJA,SON
+	# 	0s are returned for months not included in seasons
+	# if cflag is set to 1, calculate seasonal means first
+	# if tflag is set to 1, also return seasonal means
+	
+	import numpy as np
+
+	n = np.shape(x)
+	if n[0]!=np.shape(my)[0]:
+		raise ValueError('time should be the first dimension of the input data')
+
+	if isinstance(seasons[0],list)==0:	#if only one season provided, nest list
+		seasons = [seasons]
+	
+	if np.size(np.shape(my))==3:
+		my = my[:,1:]	#if dmy, remove day column
+
+	if startyear==0:
+		startyear = my[0,1]	#if no startyear is given, use first entry
+	if endyear==0:
+		endyear = my[-1,1]	#if no endyear is given, use last
+
+	if cflag==1:
+		x1,ys = calc_seasonal(x,my,seasons=seasons,tflag=1)
+		
+		y = np.zeros(np.shape(x1))
+		ys2 = ys[(ys[:,0]>=startyear) & (ys[:,0]<=endyear),:]
+		x2 = x1[(ys[:,0]>=startyear) & (ys[:,0]<=endyear),...]
+		sm = np.zeros(np.shape(x1)); sm = sm[:len(seasons),...]	
+
+		for k in xrange(len(seasons)):
+			y[ys[:,1]==k+1,...] = x1[ys[:,1]==k+1,...] - np.nanmean(x2[ys2[:,1]==k+1,...],axis=0)
+			sm[k,...] = np.nanmean(x2[ys2[:,1]==k+1,...],axis=0)
+			
+	else:
+		y = np.zeros(n)
+		my2 = my[(my[:,1]>=startyear) & (my[:,1]<=endyear),:]
+		x2 = x[(my[:,1]>=startyear) & (my[:,1]<=endyear),...]
+		sm = np.zeros(n); sm = sm[:len(seasons),...]
+	
+		for k in xrange(len(seasons)):
+			y[np.in1d(my[:,0],seasons[k]),...] = x[np.in1d(my[:,0],seasons[k]),...] - np.nanmean(x2[np.in1d(my2[:,0],seasons[k]),...],axis=0)
+			sm[k,...] = np.nanmean(x2[np.in1d(my2[:,0],seasons[k]),...],axis=0)
+
+	if tflag==1:		
+		return y, sm
+	else:
+		return y
+	
+#################################################################################
 def remove_seasonal_dec(x, my, yds, flag=0):
 
 	# returns the values of x with the monthly means removed by decade
 	# x should have time as its first dimension
 	# yds is an array of the bounds of each decade
 	# flag to return array of (time,...) if 0 and (years, months, ...) if 1
+
 	import numpy as np
 
 	n = np.shape(x)
 	if n[0]!=np.shape(my)[0]:
 		raise ValueError('time should be the first dimension of the input data')
-	if np.size(n)>2:
-		raise ValueError('input data has too many dimensions')
 	
 	if np.size(n)>1:
 		x1 = np.reshape(x, (-1,12,n[1]), order='C')	#reshape to (years, months, ...)
 	else:
 		x1 = np.reshape(x, (-1,12), order='C')
 	
-	y = np.empty(np.shape(x1))
+	y = np.empzerosty(np.shape(x1))
 	y[:] = np.nan
 	nd = np.size(yds)-1
 	yrs2 = np.unique(my[:,1]) #list of years
 
 	for m in np.arange(nd):
 		inds = np.squeeze(np.nonzero((yrs2>=yds[m])&(yrs2<yds[m+1])))
-		if np.size(n) > 1:
-			y[inds,:,:] = np.nanmean(x1[inds,:,:],axis=0)
-		else:
-			y[inds,:] = np.nanmean(x1[inds,:],axis=0)
+		y[inds,...] = np.nanmean(x1[inds,...],axis=0)
 	
 	if flag==1:
 		z = x1 - y
@@ -100,11 +123,12 @@ def remove_seasonal_dec(x, my, yds, flag=0):
 	return z
 
 #################################################################################
-def remove_clim_daily(x, dmy, startyear, endyear, c_flag=0):
+def remove_clim_daily(x, dmy, startyear=0, endyear=0, c_flag=0):
 
 	# returns values of x with daily means (of the period specified) removed
 	# x should have time as its first dimension
 	# assumes any leap days have been removed
+	# if startyear and/or endyear is 0, use first (or last)
 	# if c_flag = 1, also return grid of climatologies
 	
 	import numpy as np
@@ -119,6 +143,11 @@ def remove_clim_daily(x, dmy, startyear, endyear, c_flag=0):
 	
 	y = np.zeros(n)
 
+	if startyear==0:
+		startyear = dmy[0,2]	#if no startyear is given, use first entry
+	if endyear==0:
+		endyear = dmy[-1,2]	#if no endyear is given, use last
+		
 	if np.size(n)==1:
 		c = np.zeros((365))
 		n2 = [1]
@@ -168,7 +197,7 @@ def remove_clim_mon(x, dmy, startyear, endyear, c_flag=0):
 	mons = np.arange(12)+1
 	
 	y = np.zeros(n)
-
+	
 	if np.size(n)==1:
 		c = np.zeros((12))
 		n2 = [1]
@@ -252,7 +281,6 @@ def ratio_clim_mon(x, dmy, startyear, endyear, c_flag=0):
 		return y
 
 #################################################################################
-
 def seasonal_means(x, my, startyear=0, endyear=0):
 
 	# returns the monthly means (of the period specified) of x
@@ -275,21 +303,17 @@ def seasonal_means(x, my, startyear=0, endyear=0):
 	
 	my2 = my[(my[:,1]>=startyear) & (my[:,1]<=endyear),:]
 	
-	if np.size(n) > 1:
-		y = np.empty((12,)+n[1:])
-		x2 = x[(my[:,1]>=startyear) & (my[:,1]<=endyear),...]
-		for k in np.arange(12)+1:
-			y[k-1,...] = np.nanmean(x2[my2[:,0]==k,...],axis=0)
-	else:
-		y = np.empty(12)
-		x2 = x[(my[:,1]>=startyear) & (my[:,1]<=endyear)]
-		for k in np.arange(12)+1:
-			y[k-1] = np.nanmean(x2[my2[:,0]==k])
+	y = np.empty(n); y = y[:12,...]
+	x2 = x[(my[:,1]>=startyear) & (my[:,1]<=endyear),...]
+	
+	for k in xrange(12):
+		y[k,...] = np.nanmean(x2[my2[:,0]==k+1,...],axis=0)
 
 	return y
 
 ###############################################################################
 def calc_monthly(x,dmy,method='mean'):
+	
 	#returns an array of monthly means calculated from daily data
 	#x should have time as its first dimension
 	#method can be 'mean' for monthly averages or 'sum' for monthly totals
@@ -318,6 +342,49 @@ def calc_monthly(x,dmy,method='mean'):
 	
 	return y
 
+#################################################################################
+def calc_seasonal(x, my, seasons=[[12,1,2],[3,4,5],[6,7,8],[9,10,11]], tflag=0):
+
+	# returns an array of seasonal means of x
+	# x should have time as its first dimension
+	# seasons should be a list containing month numbers grouped into seasons
+	# if tflag is 1, return year, season array
+	
+	import numpy as np
+
+	n = np.shape(x)
+	if n[0]!=np.shape(my)[0]:
+		raise ValueError('time should be the first dimension of the input data')
+
+	if isinstance(seasons[0],list)==0:	#if only one season provided, nest list
+		seasons = [seasons]
+	
+	ns = len(seasons)
+	
+	if np.shape(my)[1]==3:
+		my = my[:,1:]	#if dmy, remove day column
+		
+	yrs = np.unique(my[:,1])
+	ny = len(yrs)
+	
+	y1 = np.zeros((ns,ny)+n[1:])
+
+	
+	for k in xrange(ns):
+		for j in xrange(ny):
+			y1[k,j,...] = np.nanmean(x[(my[:,1]==yrs[j])&(np.in1d(my[:,0],seasons[k])),...],axis=0)
+
+	y = np.reshape(y1,(ns*ny,)+n[1:],order='F')
+
+	if tflag==1:
+		my2 = np.zeros((ns*ny,2))
+		my2[:,0] = np.repeat(yrs,ns)
+		my2[:,1] = np.tile(np.arange(ns)+1,ny)
+		my2 = my2.astype('int')
+		
+		return y,my2
+	else:
+		return y
 
 #################################################################################
 def runmean(x, d, ts='None', axis=0):
@@ -429,7 +496,6 @@ def nonrunmean(x, yrs, d, axis=0, remove='last'):
 	return (xa,yrs5)
 							
 #################################################################################
-
 def shift_latlon(lat1, lon1, axisa=0, axiso=1, add_ext=1):
 	
 	# returns lats and lons corresponding to the SW corner of the gridbox, with input at centers
@@ -548,7 +614,6 @@ def gridboxarea(lat1,lon1):
 	return gba
 	
 ################################################################################
-
 def quantmap(x,y,n=400,pmap='None',o_flag=0):
 	
 	# adjusts the data in x by matching the quantiles of y
@@ -635,7 +700,6 @@ def quantmap(x,y,n=400,pmap='None',o_flag=0):
 		return (x1,pmap)
 
 ################################################################################
-
 def quantmap_del(xf,xh,pmap):
 	
 	# applies quantile mapping to the time series of xf (future) using the fit
@@ -687,7 +751,6 @@ def quantmap_del(xf,xh,pmap):
 
 
 ###############################################################################
-
 def detrend(x,time,period='None',axis=0):
 	
 	#returns x with a linear trend removed
