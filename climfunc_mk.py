@@ -431,8 +431,8 @@ def runmean(x, d, ts='None', axis=0):
 	else:
 		q = np.floor(d/2.)
 		if d%2==0:
-			ts2 = ts[q:-(q+1)]
-			ts2 = ts2 - (ts[1]-ts[0])/2
+			ts2 = ts[(q-1):-q]
+			ts2 = ts2 - (ts[1]-ts[0])/2.
 		else:
 			ts2 = ts[q:-q]
 			
@@ -485,7 +485,7 @@ def nonrunmean(x, yrs, d, axis=0, remove='last'):
 				x2 = x1[:-(n[0]%d),:,:]
 			else:
 				x2 = x1[(n[0]%d):,:,:]
-			y = np.reshape(x2,(-1,d,n1[1]))  #separate into periods of length d
+			y = np.reshape(x2,(-1,d,n1[1],n1[2]))  #separate into periods of length d
 			xa1 = np.nanmean(y,axis=1)
 			
 		xa = np.swapaxes(xa1,0,axis) #put the axes back in the original order
