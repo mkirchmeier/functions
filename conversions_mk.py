@@ -10,7 +10,7 @@ def slp_pres(slp,tair,elev):
 	import numpy as np
 	
 	if np.shape(tair)!=np.shape(elev):
-		elev = np.tile(elev,(np.shape(tair)[0],1,1))	#making assumptions about shapes here
+		elev = np.squeeze(np.tile(elev,(np.shape(tair)[0],1,1)))	#making assumptions about shapes here
 	
 	pres = slp * np.exp(-elev / (29.263*(tair+273.15)))
 	
@@ -80,9 +80,13 @@ def t_es(tair,punit='Pa'):
 
 ###############################################################################
 
-def vpd(relh,tair,punit='Pa'):
+def vpd(moist,tair,mvar,pres=None,punit='Pa'):
 	
-	#tair in C, RH in %
+	#tair in C
+	#specify moisture variable provided using mvar
+	#   current options: relh (relative humidity), huss (specific humidity), mr (mixing ratio)
+	#   may need to supply pres
+	#relh in % or huss/mr in kg/kg
 	
 	tair = tair + 273.15	
 	
@@ -104,7 +108,20 @@ def vpd(relh,tair,punit='Pa'):
 		
 	es = e0 * np.exp((L/Rv)*((1/T0)-(1/tair)))	
 	
-	e = es*relh/100
+	if mvar=='relh':
+		e = es*moist/100
+	elif mvar=='huss':
+		ep = 0.622
+		if pres==None:
+			raise ValueError('pressure input needed for this moisture variable')
+		e = (moist*pres) / (moist+ep*(1-moist))
+	elif mvar=='mr':
+		ep = 0.622
+		if pres==None:
+			raise ValueError('pressure input needed for this moisture variable')
+		e = (moist*pres) / (moist+ep)
+	else:
+		raise ValueError('please provide approriate moisture variable')
 	
 	vpd = es - e
 	
