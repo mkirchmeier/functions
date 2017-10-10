@@ -179,11 +179,11 @@ def save_nc_format(dmy):
 	
 	import numpy as np
 
-	nd = np.size(dmy[:,0])
+	nd,n = np.shape(dmy)
 	
 	dmys = dmy.astype(str)
 	
-	date1 = np.zeros((nd,),dtype='S10')
+	date1 = np.zeros((nd,),dtype='S12')
 	
 	for i in np.arange(nd):
 		if dmy[i,0]<10:
@@ -195,6 +195,9 @@ def save_nc_format(dmy):
 			date1[i] = dmys[i,2]+'0'+dmys[i,1]+dmys[i,0]
 		else:
 			date1[i] = dmys[i,2]+dmys[i,1]+dmys[i,0]
+		
+		if n==4:
+			date1[i] += str(dmy[i,3]/24.)[1:]
 	
 	date2 = date1.astype(float)
 	
