@@ -209,6 +209,7 @@ def save_time_h(start_date, end_date, step=1, start_hour=0, ctype='standard'):
 	# returns a dmyh array (h = hour)
 	# start_date and end_date should be in the form [d m y]
 	# accepts input for the hour step (e.g., 1, 3, 12, etc.)
+	# will only work properly if start_hour is an even step from 0
 
 	import numpy as np
 	
@@ -221,14 +222,18 @@ def save_time_h(start_date, end_date, step=1, start_hour=0, ctype='standard'):
 
 	nd = np.size(dmy1[:,0])	
 	
-	nh = 24./step	
+	if np.mod(24,step)!=0:
+		raise ValueError('step must be a factor of 24')
+	nh = 24/step
 	
 	dmy2 = np.repeat(dmy1,nh,axis=0)
 
-	hrs = np.arange(start_hour,24,step)
+	hrs = np.arange(0,24,step)
 	hrs1 = np.tile(hrs,nd)
+	rm = start_hour/step
 		
-	dmyh = np.hstack((dmy2,hrs1[:,None]))
+	dmyh1 = np.hstack((dmy2,hrs1[:,None]))
+	dmyh = dmyh1[rm:-(nh-rm),:]
 	
 	return dmyh
 
