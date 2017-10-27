@@ -233,7 +233,10 @@ def save_time_h(start_date, end_date, step=1, start_hour=0, ctype='standard'):
 	rm = start_hour/step
 		
 	dmyh1 = np.hstack((dmy2,hrs1[:,None]))
-	dmyh = dmyh1[rm:-(nh-rm),:]
+	if rm==0:
+		dmyh = dmyh1
+	else:
+		dmyh = dmyh1[rm:-(nh-rm),:]
 	
 	return dmyh
 
