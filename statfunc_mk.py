@@ -1,7 +1,7 @@
 #################################################################################
 # A set of functions for common statistical analyses
 #################################################################################
-def regr(x,y,TLS_flag=0,add_int=0):
+def regr(x,y,TLS_flag=0,add_int=0,dict_out=0):
 	
 	#computes the regression coefficients for y = xB
 	#if add_int flag is 1, then a column of 1s is included in x to fit an
@@ -10,6 +10,7 @@ def regr(x,y,TLS_flag=0,add_int=0):
 	#   then OLS
 	#if more than one dimension, x and y should be column data; any centering
 	#   should be done before input
+	#dict_out flag, if set to 1, will output a dictionary full of regression info
 
 	import numpy as np
 	from scipy import linalg
@@ -34,7 +35,24 @@ def regr(x,y,TLS_flag=0,add_int=0):
 	else:
 		beta = np.dot(linalg.inv(np.dot(x.T,x)),np.dot(x.T,y))
 
-	return beta
+	if dict_out==0:
+		return beta
+	elif dict_out==1:
+		if TLS_flag==1:
+			raise ValueError('Sorry, dictionary output only works with OLS regression')
+		out = {}
+		out['coefs'] = beta
+		yhat = np.dot(x,beta)
+		resid = y - yhat
+		s2 = np.dot(resid.T,resid)/(n-len(x[0,:]))
+		cv = s2*linalg.inv(np.dot(x.T,x))
+		out['yhat'] = np.squeeze(yhat)
+		out['residuals'] = np.squeeze(resid)
+		out['stderr'] = np.asscalar(np.sqrt(s2))
+		out['stderr_coefs'] = np.sqrt(np.diag(cv))
+		out['r-squared'] = np.corrcoef(y[:,0],yhat[:,0])[0,1]**2
+		
+		return out
 	
 ###############################################################################
 def AIC(x,y,add_int=0):
@@ -89,7 +107,6 @@ def AIC_cv(y,yhat,p):
 	return aic
 	
 ###############################################################################
-
 def CItoEB(CI,x):
 	
 	#input an nx2 array of CI bounds and their corresponding variable in the 
