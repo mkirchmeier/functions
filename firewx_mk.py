@@ -34,7 +34,7 @@ def FFMC(tair,relh,wspd,pr,restart='None',fwi_flag=0):
 	
 	for i in np.arange(n):
 		if restart[i]==1:
-			f0 = 85
+			f0 = 85.
 		else:
 			f0 = ffmc[i-1]
 			k = 1
@@ -42,41 +42,41 @@ def FFMC(tair,relh,wspd,pr,restart='None',fwi_flag=0):
 				f0 = ffmc[i-1-k]	#if previous value is NaN, take last available
 				k += 1
 				if k>5:		#if going back more than 5 days, reset to default
-					f0 = 85
+					f0 = 85.
 			
 		if np.isnan(tair[i]) or np.isnan(pr[i]) or np.isnan(relh[i]) or np.isnan(wspd[i]):
 			ffmc[i] = np.nan 		#if missing input, return nan
 			ms[i] = np.nan			
 			continue
 		
-		m0 = 147.2 * (101 - f0) / (59.5 + f0)
+		m0 = 147.2 * (101. - f0) / (59.5 + f0)
 		
 		if pr[i] > 0.5:
 			rf = pr[i] - 0.5
-			if m0 <= 150:
-				mr = m0 + 42.5 * rf * np.exp(-100/(251-m0))*(1-np.exp(-6.93/rf))
+			if m0 <= 150.:
+				mr = m0 + 42.5 * rf * np.exp(-100./(251-m0))*(1-np.exp(-6.93/rf))
 			else:
-				mr = m0 + 42.5 * rf * np.exp(-100/(251-m0))*(1-np.exp(-6.93/rf)) + 0.0015 * (m0 - 150)**2 * rf**0.5
-			if mr > 250:
-				mr = 250
+				mr = m0 + 42.5 * rf * np.exp(-100./(251-m0))*(1-np.exp(-6.93/rf)) + 0.0015 * (m0 - 150)**2 * rf**0.5
+			if mr > 250.:
+				mr = 250.
 			m0 = mr
 		
-		ed = 0.942*relh[i]**0.679 + 11*np.exp((relh[i]-100)/10) + 0.18*(21.1 - tair[i])*(1-np.exp(-0.115*relh[i]))
+		ed = 0.942*relh[i]**0.679 + 11.*np.exp((relh[i]-100.)/10.) + 0.18*(21.1 - tair[i])*(1-np.exp(-0.115*relh[i]))
 		
 		if m0 > ed:
-			k0 = 0.424 * (1 - (relh[i]/100)**1.7) + 0.0694 * wspd[i]**0.5 * (1 - (relh[i]/100)**8)
+			k0 = 0.424 * (1 - (relh[i]/100.)**1.7) + 0.0694 * wspd[i]**0.5 * (1 - (relh[i]/100.)**8)
 			kd = k0 * 0.581 * np.exp(0.0365*tair[i])
 			m = ed + (m0 - ed)*10**-kd
 		else:
-			ew = 0.618*relh[i]**0.753 + 10*np.exp((relh[i]-100)/10) + 0.18*(21.1 - tair[i])*(1-np.exp(-0.115*relh[i]))
+			ew = 0.618*relh[i]**0.753 + 10.*np.exp((relh[i]-100)/10) + 0.18*(21.1 - tair[i])*(1-np.exp(-0.115*relh[i]))
 			if m0 < ew:
-				kl = 0.424*(1 - ((100-relh[i])/100)**1.7) + 0.694 * wspd[i]**0.5 * (1 - ((100-relh[i])/100)**8)
+				kl = 0.424*(1 - ((100.-relh[i])/100.)**1.7) + 0.694 * wspd[i]**0.5 * (1 - ((100.-relh[i])/100.)**8)
 				kw = kl * 0.581*np.exp(0.0365*tair[i])
 				m = ew - (ew - m0)*10**-kw
 			else:
 				m = m0
 		
-		f = 59.5 * (250 - m)/(147.2 + m)
+		f = 59.5 * (250. - m)/(147.2 + m)
 		
 		ffmc[i] = f
 		ms[i] = m
@@ -112,7 +112,7 @@ def DMC(tair,relh,prcp,mon,dmc0='None',restart='None'):
 		raise ValueError('restart array must be same size as mon array')
 	
 	if dmc0 is 'None':
-		dmc0 = 6
+		dmc0 = 6.
 	else:
 		dmc0 = dmc0[~np.isnan(dmc0)]
 	if np.size(dmc0)!=np.sum(restart):
@@ -153,20 +153,20 @@ def DMC(tair,relh,prcp,mon,dmc0='None',restart='None'):
 		if prcp[i] > 1.5:		
 			re = 0.92*prcp[i] - 1.27
 		
-			mo = 20 + np.exp(5.6348 - p0/43.43)
+			mo = 20. + np.exp(5.6348 - p0/43.43)
 			
 			if p0 <= 33:
-				b = 100 / (0.5 + 0.3*p0)
+				b = 100. / (0.5 + 0.3*p0)
 			elif p0 <= 65:
 				b = 14 - 1.3*np.log(p0)
 			else:
 				b = 6.2*np.log(p0) - 17.2
 			
-			mr = mo + 1000*re / (48.77 + b*re)
+			mr = mo + 1000.*re / (48.77 + b*re)
 			
-			pr = 244.72 - 43.43*np.log(mr-20)
-			if pr < 0:
-				pr = 0
+			pr = 244.72 - 43.43*np.log(mr-20.)
+			if pr < 0.:
+				pr = 0.
 			
 		else:
 			pr = p0
@@ -176,9 +176,12 @@ def DMC(tair,relh,prcp,mon,dmc0='None',restart='None'):
 		else:
 			t = tair[i]
 			
-		k = 1.894 * (t + 1.1)*(100-relh[i])*le[i]*10**-6
+		k = 1.894 * (t + 1.1)*(100.-relh[i])*le[i]*10**-6
 		
-		p = pr + 100*k
+		p = pr + 100.*k
+		
+		if p<0.:
+			p = 0.
 		
 		dmc[i] = p
 		
@@ -208,7 +211,7 @@ def DC2(tair,pr,mon,dc0='None',restart='None'):
 		raise ValueError('restart array must be same size as mon array')
 	
 	if dc0 is 'None':
-		dc0 = 15
+		dc0 = 15.
 	else:
 		dc0 = dc0[~np.isnan(dc0)]
 	if np.size(dc0)!=np.sum(restart):
@@ -238,7 +241,7 @@ def DC2(tair,pr,mon,dc0='None',restart='None'):
 			while np.isnan(d0):
 				d0 = dc[i-1-k]	#if previous value is NaN, take last available
 				k += 1
-				if k>60:		#if going back more than 60 days, reset to default
+				if k>60.:		#if going back more than 60 days, reset to default
 					d0 = dc0[j-1]
 
 		if np.isnan(tair[i]) or np.isnan(pr[i]):
@@ -248,13 +251,13 @@ def DC2(tair,pr,mon,dc0='None',restart='None'):
 		if pr[i]>2.8:
 			rd = 0.83*pr[i] - 1.27
 			
-			q0 = 800 * np.exp(-d0/400)
+			q0 = 800. * np.exp(-d0/400.)
 			
 			qr = q0 + 3.937*rd
 			
-			dr = 400 * np.log(800/qr)
-			if dr < 0:
-				dr = 0
+			dr = 400. * np.log(800./qr)
+			if dr < 0.:
+				dr = 0.
 		
 		else:
 			dr = d0
@@ -265,8 +268,8 @@ def DC2(tair,pr,mon,dc0='None',restart='None'):
 			t = tair[i]
 			
 		v = 0.36*(t+2.8) + lf[i]
-		if v < 0:
-			v = 0
+		if v < 0.:
+			v = 0.
 		
 		d = dr + 0.5*v		
 		
@@ -365,7 +368,7 @@ def FWI(tair,relh,wspd,pr,mon,dc0='None',dmc0='None',restart='None',return_flag=
 		rd['isi'] = r
 		rd['dc'] = d
 		rd['dmc'] = p
-		rd['ffmc'] = 59.5 * (250 - m)/(147.2 + m)
+		rd['ffmc'] = 59.5 * (250. - m)/(147.2 + m)
 		
 		return rd
 
@@ -586,8 +589,8 @@ def start_stop2(tair,pr,snow,dmy,ths=[6,6],jdsnow=60,r_flag=0):
 			ni = ind2-ind1
 			sd1 = nd[ind1[ni>=3][0]]+4	   #start after 3 days of no snow (after 01 March or supplied date)		
 			
-			dmc0[j] = 6
-			dc0[j] = 15
+			dmc0[j] = 6.
+			dc0[j] = 15.
 			
 			#determine return of snow cover (use as end date if earlier than temp-based date)
 			sfm = nd[ind1[np.argmax(ni)]]	#determine start of max snow-free period
@@ -606,12 +609,12 @@ def start_stop2(tair,pr,snow,dmy,ths=[6,6],jdsnow=60,r_flag=0):
 
 			#determine # of days since precip
 			pryr = pr[(dmy[:,2]==yrs[j])]
-			pd = 0; w = 0
-			while pd==0:
+			pd = 0.; w = 0.
+			while pd==0.:
 				pd = pryr[int(sd1)-1-w]
-				w = w+1
-			dmc0[j] = 2*(w-1)
-			dc0[j] = 5*(w-1)
+				w = w+1.
+			dmc0[j] = 2.*(w-1)
+			dc0[j] = 5.*(w-1)
 
 		i1 = np.extract(dmy[:,2]==yrs[j],np.arange(n))[0]
 		ind[i1+sd1-1:i1+ed1] = 1
@@ -709,8 +712,8 @@ def start_stop3(tair,pr,snow,dmy,ths=[6,6],jdsnow=60,r_flag=0):
 			if sd1 > ed[j]:		#if snow cover leaves after temperatre end date, then no fire season
 				continue
 			
-			dmc0[j] = 6
-			dc0[j] = 15
+			dmc0[j] = 6.
+			dc0[j] = 15.
 			
 			#determine return of snow cover (use as end date if earlier than temp-based date)
 			sfm = nd[ind1[np.argmax(ni)]]	#determine start of max snow-free period
@@ -725,12 +728,12 @@ def start_stop3(tair,pr,snow,dmy,ths=[6,6],jdsnow=60,r_flag=0):
 
 			#determine # of days since precip
 			pryr = pr[(dmy[:,2]==yrs[j])]
-			pd = 0; w = 0
-			while pd==0:
-				pd = pryr[int(sd1)-1-w]
-				w = w+1
-			dmc0[j] = 2*(w-1)
-			dc0[j] = 5*(w-1)
+			pd = 0.; w = 0.
+			while pd==0.:
+				pd = pryr[int(sd1)-1.-w]
+				w = w+1.
+			dmc0[j] = 2.*(w-1)
+			dc0[j] = 5.*(w-1)
 
 		i1 = np.extract(dmy[:,2]==yrs[j],np.arange(n))[0]
 		ind[i1+sd1-1:i1+ed1] = 1
