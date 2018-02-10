@@ -616,6 +616,41 @@ def gridboxarea(lat1,lon1):
 		gba = gba[:,ind]
 		
 	return gba
+
+###############################################################################
+def dist_globe(lat1,lon1,lat2,lon2):
+	
+	# calculates the distance in m between two lat,lon points on the globe
+	# expects inputs in degrees
+	
+	import numpy as np
+	
+	#make sure the originals in the calling script are safe
+	lon1 = np.copy(lon1)
+	lon2 = np.copy(lon2)
+	
+	#lons on [0, 360]
+	if lon1<0:
+		lon1 += 360
+	if lon2<0:
+		lon2 += 360
+	
+	#convert to radians
+	latr1 = lat1*np.pi/180
+	latr2 = lat2*np.pi/180
+	lonr1 = lon1*np.pi/180
+	lonr2 = lon2*np.pi/180
+
+	r = 	6371000	#radius of the earth in m
+
+	delo = np.abs(lonr2-lonr1)
+	
+	num = np.sqrt((np.cos(latr2)*np.sin(delo))**2+(np.cos(latr1)*np.sin(latr2)-np.sin(latr1)*np.cos(latr2)*np.cos(delo))**2)
+	den = np.sin(latr1)*np.sin(latr2)+np.cos(latr1)*np.cos(latr2)*np.cos(delo)
+	
+	d = r*np.arctan2(num,den)
+	
+	return d
 	
 ################################################################################
 def quantmap(x,y,n=400,pmap='None',o_flag=0):
@@ -878,5 +913,68 @@ def growdegday(ta,tn,th,end_dates='None',oflag=1):
 			gdd[i] = np.sum(ta[:end_dates[i]])
 	
 	return (gdd,sd,ed)
+
+###############################################################################
+def calc_streaks(x,th,direc='geq',out_time=1):
+	
+	#calculates the number and length of streaks in the data x that exceed the
+	# provided threshold th
+	# direction defaults to 'geq' for greater than or equal to th but also
+	# accepts 'g', 'l', or 'leq'
+	#x must be a single time series
+	#set out_time to 0 if the timing of the streaks is not desired
+	#assumes NaNs do not meet the criteria
+	
+	import numpy as np
+	
+	nx = np.shape(x)
+	if np.size(nx) == 2:
+		if nx[0] or nx[1] != 1:
+			raise ValueError('x must be a vector')
+	elif np.size(nx) > 2:
+		raise ValueError('x must be a vector')
+	
+	x = np.squeeze(x)
+	
+	y = np.zeros(len(x))
+		
+	if direc=='geq':
+		y[x>=th] = 1
+	elif direc=='g':
+		y[x>th] = 1
+	elif direc=='leq':
+		y[x<=th] = 1
+	elif direc=='l':
+		y[x<th] = 1
+	else:
+		raise ValueError('please provide a valid direction')
+		
+
+	y1 = np.diff(y)
+	nd1 = np.arange(len(y1),dtype='int')
+
+	ind1 = np.extract(y1==1,nd1)	#start yes
+	ind2 = np.extract(y1==-1,nd1)	#start no
+	
+	if y[~np.isnan(y)][0]==1:	#if starts yes
+		ind1 = np.hstack((np.argwhere(~np.isnan(y))[0],ind1))
+	if y[~np.isnan(y)][-1]==1:	#if ends yes
+		ind2 = np.hstack((ind2,np.argwhere(~np.isnan(y))[-1]))
+	if len(ind1)>len(ind2) and ind1[-1]>ind2[-1]:
+		ind1 = ind1[:-1]
+	if np.any(ind2-ind1)<0:
+		raise ValueError('oops...negative durations')
+
+	streaks = ind2 - ind1
+	if y[~np.isnan(y)][0]==1:
+		streaks[0]+=1
+	if y[~np.isnan(y)][-1]==1:
+		streaks[-1]+=1
+	
+	if out_time==1:
+		return streaks,ind1+1
+	else:
+		return streaks
+
 
 ###############################################################################
