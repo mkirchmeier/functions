@@ -337,6 +337,8 @@ def FWI(tair,relh,wspd,pr,mon,dc0='None',dmc0='None',restart='None',return_flag=
 	u[ind] = 0.8 * p[ind]*d[ind] / (p[ind] + 0.4*d[ind])
 	u[ind==False] = p[ind==False] - (1 - 0.8*d[ind==False]/(p[ind==False] + 
 				0.4*d[ind==False]))*(0.92 + (0.0114*p[ind==False])**1.7)
+	u[p==0] = 0.0
+	u[u<0] = 0.0			
 	
 	if return_flag is 'bui' or return_flag is 'BUI':
 		return u
