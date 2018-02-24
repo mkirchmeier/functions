@@ -20,7 +20,7 @@ def regr(x,y,TLS_flag=0,add_int=0,dict_out=0):
 	if np.size(np.shape(y))==1:
 		y = y[:,None]
 	
-	n,m = np.shape(x)
+	n,p = np.shape(x)
 	
 	if np.shape(y)[0] != n: 
 		raise ValueError('x and y must have matching first dimension')
@@ -31,7 +31,7 @@ def regr(x,y,TLS_flag=0,add_int=0,dict_out=0):
 	if TLS_flag==1:
 		z = np.hstack((x,y))
 		u,s,v1 = linalg.svd(z)
-		beta = np.dot(linalg.inv(np.dot(x.T,x)-(s[m]**2)*np.identity(m)),np.dot(x.T,y))
+		beta = np.dot(linalg.inv(np.dot(x.T,x)-(s[p]**2)*np.identity(p)),np.dot(x.T,y))
 	else:
 		beta = np.dot(linalg.inv(np.dot(x.T,x)),np.dot(x.T,y))
 
@@ -51,9 +51,57 @@ def regr(x,y,TLS_flag=0,add_int=0,dict_out=0):
 		out['stderr'] = np.asscalar(np.sqrt(s2))
 		out['stderr_coefs'] = np.sqrt(np.diag(cv))
 		out['r-squared'] = np.corrcoef(y[:,0],yhat[:,0])[0,1]**2
+		out['mse'] = np.sum(resid**2)/(n-p-1)
+		out['x'] = x
+		out['y'] = y
 		
 		return out
+		
+###############################################################################
+def regr_int(rdict,xp,alpha=.05):
 	
+	#calculates the confidence and prediction errors and intervals when
+	# applying the predictors in xp to the regression described in the 
+	# dictionary rdict that is output from the regr function above
+	#assumes xp contains the predictors in columns and that they are provided
+	# in the same order as the x used to fit the regression, though the ones
+	# for the intercept are not required
+
+	import numpy as np
+	from scipy import linalg, stats
+
+	x = rdict['x']
+	n,p = np.shape(x)
+
+	if np.size(np.shape(xp))==1:
+		xp = xp[:,None]
+
+	m,p1 = np.shape(xp)
+	if p1==p-1:
+		xp = np.hstack((np.ones((m,1)),xp))
+	elif p1!=p:
+		raise ValueError('input predictors do not match regression provided')
+
+	hp = np.dot(xp,np.dot(linalg.inv(np.dot(x.T,x)),xp.T))		
+	se_fit = np.sqrt(rdict['mse']*np.diag(hp))	#standard error of the fit (so for \bar{y}_p)
+	se_pred = np.sqrt(se_fit**2 + rdict['mse']) #standard error of the prediction (so for y_p)
+	
+	tcrit = stats.t.ppf(alpha/2.,n-p-1)
+	
+	ci = np.zeros((m,2))
+	pi = np.zeros((m,2))
+	
+	yhatp = np.squeeze(np.dot(xp,rdict['coefs']))
+	
+	ci[:,0] = yhatp + tcrit*se_fit
+	ci[:,1] = yhatp - tcrit*se_fit
+	pi[:,0] = yhatp + tcrit*se_pred
+	pi[:,1] = yhatp - tcrit*se_pred
+	
+	return {'se_fit':se_fit,'se_pred':se_pred,'confidence_interval':ci,
+			'prediction_interval':pi,'prediction':yhatp,'predictors':xp}
+	
+
 ###############################################################################
 def AIC(x,y,add_int=0):
 	
