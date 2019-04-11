@@ -8,7 +8,7 @@ def save_time(start_year, end_year, ctype='standard'):
 	#ctype should be either 'standard' (default), 'noleap', or '360_day'
 
 	import numpy as np
-	import numexpr as ne
+	#import numexpr as ne
 
 	if ctype in ['365-day', '365_day']:
    		ctype = 'noleap'
@@ -31,11 +31,12 @@ def save_time(start_year, end_year, ctype='standard'):
 	years = np.arange(start_year,end_year+1)
 	year = np.empty((ndy,num_years))
 
-	for i in np.arange(num_years):
+	for i in xrange(num_years):
     		year[:,i] = np.tile(years[i],(ndy))
 
 	year = np.reshape(year, (length_time), order='F')
 
+	mon_nday = [31,29,31,30,31,30,31,31,30,31,30,31]	
 	#create array for mon
 	if ctype == '360_day':
     		q = 1
@@ -45,21 +46,23 @@ def save_time(start_year, end_year, ctype='standard'):
         		q = q+30
     
 	else:
-    
-    		jan = np.tile(1,(31))
-    		feb = np.tile(2,(29))
-    		mar = np.tile(3,(31))
-    		apr = np.tile(4,(30))
-    		may = np.tile(5,(31))
-    		jun = np.tile(6,(30))
-    		jul = np.tile(7,(31))
-    		aug = np.tile(8,(31))
-    		sep = np.tile(9,(30))
-    		oct = np.tile(10,(31))
-    		nov = np.tile(11,(30))
-    		dec = np.tile(12,(31))
-    
-    		mon_1 = np.concatenate((jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec))
+		
+			yr_days1 = [np.tile(h+1,mon_nday[h]) for h in xrange(12)]
+			mon_1 = np.hstack(yr_days1)
+#    		jan = np.tile(1,(31))
+#    		feb = np.tile(2,(29))
+#    		mar = np.tile(3,(31))
+#    		apr = np.tile(4,(30))
+#    		may = np.tile(5,(31))
+#    		jun = np.tile(6,(30))
+#    		jul = np.tile(7,(31))
+#    		aug = np.tile(8,(31))
+#    		sep = np.tile(9,(30))
+#    		oct = np.tile(10,(31))
+#    		nov = np.tile(11,(30))
+#    		dec = np.tile(12,(31))
+#    
+#    		mon_1 = np.concatenate((jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec))
 
 
 	mon = np.tile(mon_1, (num_years))
@@ -70,37 +73,43 @@ def save_time(start_year, end_year, ctype='standard'):
     		day_2 = np.tile(np.arange(1,30),(12,1))
     		day_1 = np.reshape(day_2.T, (360,), order='F')
 	else:
-    
-    		jan_d = np.arange(31)+1
-    		feb_d = np.arange(29)+1
-    		mar_d = np.arange(31)+1
-    		apr_d = np.arange(30)+1
-    		may_d = np.arange(31)+1
-    		jun_d = np.arange(30)+1
-    		jul_d = np.arange(31)+1
-    		aug_d = np.arange(31)+1
-    		sep_d = np.arange(30)+1
-    		oct_d = np.arange(31)+1
-    		nov_d = np.arange(30)+1
-    		dec_d = np.arange(31)+1
-    
-    		day_1 = np.concatenate((jan_d.T, feb_d.T, mar_d.T, apr_d.T, may_d.T, jun_d.T, jul_d.T, aug_d.T, sep_d.T, oct_d.T, nov_d.T, dec_d.T))
+
+			day_0 = [np.arange(mon_nday[h])+1 for h in xrange(12)]
+			day_1 = np.hstack(day_0)
+#    		jan_d = np.arange(31)+1
+#    		feb_d = np.arange(29)+1
+#    		mar_d = np.arange(31)+1
+#    		apr_d = np.arange(30)+1
+#    		may_d = np.arange(31)+1
+#    		jun_d = np.arange(30)+1
+#    		jul_d = np.arange(31)+1
+#    		aug_d = np.arange(31)+1
+#    		sep_d = np.arange(30)+1
+#    		oct_d = np.arange(31)+1
+#    		nov_d = np.arange(30)+1
+#    		dec_d = np.arange(31)+1
+#    
+#    		day_1 = np.concatenate((jan_d.T, feb_d.T, mar_d.T, apr_d.T, may_d.T, jun_d.T, jul_d.T, aug_d.T, sep_d.T, oct_d.T, nov_d.T, dec_d.T))
 
 
 	day = np.tile(day_1, (num_years))
 
 	#remove the 29-Feb except for leap years
 	if ctype == 'standard':
-    		indices = ne.evaluate("((day == 29) & (mon == 2)) & (((year % 4) != 0) | (((year % 100)==0) & ((year % 400)!=0)))")
-		year = year[~indices]
-		mon = mon[~indices]
-		day = day[~indices]
+		xind = np.ones((len(day)))
+		xind[((day == 29) & (mon == 2)) & (((year % 4) != 0) | (((year % 100)==0) & ((year % 400)!=0)))] = 0
+		xind = xind.astype('bool')
+		year = year[xind]
+		mon = mon[xind]
+		day = day[xind]
     
 	elif ctype == 'noleap':
-		indices = ne.evaluate("((day==29) & (mon ==2))")
-    		year = year[~indices]
-   		mon = mon[~indices]
-    		day = day[~indices]
+		xind = np.ones((len(day)))
+		xind[((day == 29) & (mon == 2))] = 0
+		xind = xind.astype('bool')
+		year = year[xind]
+		mon = mon[xind]
+		day = day[xind]
 
 
 	dmy = np.array((day, mon, year)).T
@@ -125,7 +134,7 @@ def save_time_m(start_year, end_year, start_mon=1, end_mon=12):
 	years = np.arange(start_year,end_year+1)
 	year = np.empty((12,num_years))
 
-	for i in np.arange(num_years):
+	for i in xrange(num_years):
     		year[:,i] = np.tile(years[i],(12))
 
 	year = np.reshape(year, (length_time), order='F')
@@ -185,7 +194,7 @@ def save_nc_format(dmy):
 	
 	date1 = np.zeros((nd,),dtype='S12')
 	
-	for i in np.arange(nd):
+	for i in xrange(nd):
 		if dmy[i,0]<10:
 			if dmy[i,1]<10:
 				date1[i] = dmys[i,2]+'0'+dmys[i,1]+'0'+dmys[i,0]
@@ -292,8 +301,40 @@ def remove_leap(x,dmy):
 	
 	return x1,dmy1
 	
+###############################################################################
+
+def convert_nctime(df1, calendar='standard', flag='dmy'):
 	
+	#reads the time from a netcdf file and converts to a dmy array
+	#df1 is the file read with netCDF4.Dataset
+	#flag indicates output array; default is dmy, but my and y are also options
+
+	import numpy as np
+	from netCDF4 import Dataset, num2date
+
+	time = df1.variables['time'][:]
+	units = df1.variables['time'].units
 	
+	dates = num2date(time,units=units,calendar=calendar)
+	
+	n = len(dates)
+	
+	dmy = np.zeros((n,3))
+	for i in xrange(n):
+		dmy[i,0] = dates[i].day
+		dmy[i,1] = dates[i].month
+		dmy[i,2] = dates[i].year
+		
+	dmy = dmy.astype('int')
+	
+	if flag=='y':
+		return dmy[:,2]
+	elif flag=='my':
+		return dmy[:,1:]
+	else:
+		return dmy
+
+###############################################################################
 	
 	
 	
