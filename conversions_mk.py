@@ -23,11 +23,11 @@ def shum_relh(shum,tair,pres,punit='Pa'):
 	#tair in C
 	#pres in supplied units
 	
-	if punit is 'hPa':
+	if punit == 'hPa':
 		e0 = 6.11
-	elif punit is 'kPa':
+	elif punit == 'kPa':
 		e0 = 0.611
-	elif punit is 'Pa':
+	elif punit == 'Pa':
 		e0 = 611
 	else:
 		raise ValueError('please supply valid pressure units')
@@ -60,11 +60,11 @@ def t_es(tair,punit='Pa'):
 	
 	tair = tair + 273.15
 	
-	if punit is 'hPa':
+	if punit == 'hPa':
 		e0 = 6.11
-	elif punit is 'kPa':
+	elif punit == 'kPa':
 		e0 = 0.611
-	elif punit is 'Pa':
+	elif punit == 'Pa':
 		e0 = 611
 	else:
 		raise ValueError('please supply valid pressure units')
@@ -97,11 +97,11 @@ def vpd(moist,tair,mvar,pres=None,punit='Pa'):
 	Rv = 461.5
 	L  = 2.5*10**6	#assume liquid water
 	
-	if punit is 'hPa':
+	if punit == 'hPa':
 		e0 = 6.11
-	elif punit is 'kPa':
+	elif punit == 'kPa':
 		e0 = 0.611
-	elif punit is 'Pa':
+	elif punit == 'Pa':
 		e0 = 611
 	else:
 		raise ValueError('please supply valid pressure units')
@@ -112,12 +112,12 @@ def vpd(moist,tair,mvar,pres=None,punit='Pa'):
 		e = es*moist/100
 	elif mvar=='huss':
 		ep = 0.622
-		if pres==None:
+		if pres is None:
 			raise ValueError('pressure input needed for this moisture variable')
 		e = (moist*pres) / (moist+ep*(1-moist))
 	elif mvar=='mr':
 		ep = 0.622
-		if pres==None:
+		if pres is None:
 			raise ValueError('pressure input needed for this moisture variable')
 		e = (moist*pres) / (moist+ep)
 	else:

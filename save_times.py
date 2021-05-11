@@ -31,7 +31,7 @@ def save_time(start_year, end_year, ctype='standard'):
 	years = np.arange(start_year,end_year+1)
 	year = np.empty((ndy,num_years))
 
-	for i in xrange(num_years):
+	for i in range(num_years):
     		year[:,i] = np.tile(years[i],(ndy))
 
 	year = np.reshape(year, (length_time), order='F')
@@ -47,7 +47,7 @@ def save_time(start_year, end_year, ctype='standard'):
     
 	else:
 		
-			yr_days1 = [np.tile(h+1,mon_nday[h]) for h in xrange(12)]
+			yr_days1 = [np.tile(h+1,mon_nday[h]) for h in range(12)]
 			mon_1 = np.hstack(yr_days1)
 #    		jan = np.tile(1,(31))
 #    		feb = np.tile(2,(29))
@@ -74,7 +74,7 @@ def save_time(start_year, end_year, ctype='standard'):
     		day_1 = np.reshape(day_2.T, (360,), order='F')
 	else:
 
-			day_0 = [np.arange(mon_nday[h])+1 for h in xrange(12)]
+			day_0 = [np.arange(mon_nday[h])+1 for h in range(12)]
 			day_1 = np.hstack(day_0)
 #    		jan_d = np.arange(31)+1
 #    		feb_d = np.arange(29)+1
@@ -134,7 +134,7 @@ def save_time_m(start_year, end_year, start_mon=1, end_mon=12):
 	years = np.arange(start_year,end_year+1)
 	year = np.empty((12,num_years))
 
-	for i in xrange(num_years):
+	for i in range(num_years):
     		year[:,i] = np.tile(years[i],(12))
 
 	year = np.reshape(year, (length_time), order='F')
@@ -194,7 +194,7 @@ def save_nc_format(dmy):
 	
 	date1 = np.zeros((nd,),dtype='S12')
 	
-	for i in xrange(nd):
+	for i in range(nd):
 		if dmy[i,0]<10:
 			if dmy[i,1]<10:
 				date1[i] = dmys[i,2]+'0'+dmys[i,1]+'0'+dmys[i,0]
@@ -272,7 +272,7 @@ def dmy_to_julianday(dmy, use_leap=1):
 	if use_leap==0:
 		dmy[:,2] = 1997
 	
-	for i in xrange(nd):
+	for i in range(nd):
 		dt = datetime.datetime(dmy[i,2],dmy[i,1],dmy[i,0])
 		jds[i,0] = dt.timetuple().tm_yday
 	
@@ -310,7 +310,7 @@ def convert_nctime(df1, calendar='standard', flag='dmy'):
 	#flag indicates output array; default is dmy, but my and y are also options
 
 	import numpy as np
-	from netCDF4 import Dataset, num2date
+	from netCDF4 import num2date
 
 	time = df1.variables['time'][:]
 	units = df1.variables['time'].units
@@ -320,7 +320,7 @@ def convert_nctime(df1, calendar='standard', flag='dmy'):
 	n = len(dates)
 	
 	dmy = np.zeros((n,3))
-	for i in xrange(n):
+	for i in range(n):
 		dmy[i,0] = dates[i].day
 		dmy[i,1] = dates[i].month
 		dmy[i,2] = dates[i].year

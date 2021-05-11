@@ -197,7 +197,7 @@ def CItoEB(CI,x):
 	return eb
 
 ###############################################################################
-def autocorr(x, lags='None'):
+def autocorr(x, lags=None):
 	
 	#returns the autocorrelation of x at lags
 	#should input x with mean/seasonal cycle removed
@@ -205,7 +205,7 @@ def autocorr(x, lags='None'):
 	
 	import numpy as np
 	
-	if lags is 'None':
+	if lags is None:
 		lags = np.arange(11) #default to lags 0-10
 		
 		
@@ -291,7 +291,7 @@ def det_percentile(x1,x):
 	else:
 		p = np.zeros((n))	
 		
-		for i in xrange(n):
+		for i in range(n):
 			y = np.hstack((x.flatten(),x1[i]))
 			r = stats.mstats.rankdata(np.ma.masked_invalid(y))
 			p[i] = (100./len(r[r>0])) * (r[-1] - 0.5)
